@@ -14,7 +14,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('AUTH0_SECRET', 'dev-secret-placeholder')
 
-CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+CORS(app, supports_credentials=True, origins=["http://149.248.53.46"])
 
 app.config.update(
     SESSION_COOKIE_SECURE=False,
@@ -54,7 +54,7 @@ def get_store_options():
 # ── Root redirect ──────────────────────────────────────────────────────────────
 @app.route('/')
 async def index():
-    return redirect("http://localhost:5173")
+    return redirect("http://149.248.53.46")
 
 
 # ── Auth0: Login ───────────────────────────────────────────────────────────────
@@ -74,9 +74,9 @@ async def callback():
     store_options = get_store_options()
     try:
         await auth0.complete_interactive_login(str(request.url), store_options)
-        return redirect("http://localhost:5173/?auth=success")
+        return redirect("http://149.248.53.46/?auth=success")
     except Exception as e:
-        return redirect(f"http://localhost:5173/?auth=error&msg={str(e)}")
+        return redirect(f"http://149.248.53.46/?auth=error&msg={str(e)}")
 
 
 # ── Auth0: Logout ──────────────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ async def logout():
         return redirect(logout_url)
     except Exception as e:
         session.clear()
-        return redirect("http://localhost:5173")
+        return redirect("http://149.248.53.46")
 
 
 # ── Auth0: Current user ────────────────────────────────────────────────────────

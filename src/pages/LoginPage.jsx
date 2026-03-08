@@ -24,7 +24,7 @@ export default function LoginPage({ setPage, setUser }) {
   const fetchUser = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/me", {
+      const res = await fetch("/api/me", {
         credentials: "include",
       });
       if (res.ok) {
