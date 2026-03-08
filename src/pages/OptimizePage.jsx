@@ -249,7 +249,7 @@ function getBestVariantForStore(itemName, store, targetTier) {
 function buildOptimizedCart(cartItems, brandMode, allowedStores) {
   const { tier: targetTier, storePool: rawPool } = MODE_CFG[brandMode];
   const storePool = allowedStores?.length
-    ? rawPool.filter(s => allowedStores.some(a => a.toLowerCase() === s.toLowerCase()))
+    ? rawPool.filter(s => allowedStores.some(a => a.toLowerCase().includes(s.toLowerCase())))
     : rawPool;
   const storeMap = {};
 
@@ -290,7 +290,7 @@ function buildOptimizedCart(cartItems, brandMode, allowedStores) {
 function buildSingleStoreCart(cartItems, brandMode, allowedStores) {
   const { tier: targetTier, storePool: rawPool } = MODE_CFG[brandMode];
   const storePool = allowedStores?.length
-    ? rawPool.filter(s => allowedStores.some(a => a.toLowerCase() === s.toLowerCase()))
+    ? rawPool.filter(s => allowedStores.some(a => a.toLowerCase().includes(s.toLowerCase())))
     : rawPool;
 
   const results = storePool.map(store => {

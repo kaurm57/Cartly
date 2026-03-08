@@ -312,6 +312,12 @@ export default function ProfilePage({ setPage, user }) {
     });
   }, [location, radius, address]);
 
+  // ── Auto-save selected stores to localStorage immediately on change ─────────
+  useEffect(() => {
+    const local = loadFromLocalStorage() || {};
+    saveToLocalStorage({ ...local, selected_stores: selectedStores });
+  }, [selectedStores]);
+
   // ── Init Mapbox ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (map.current) return;
