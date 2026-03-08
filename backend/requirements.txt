@@ -5,3 +5,6 @@ auth0-server-python
 httpx
 supabase
 python-dotenv
+auth0-server-python>=1.0.0b7
+flask[async]>=2.0.0
+python-dotenv>=1.0.0

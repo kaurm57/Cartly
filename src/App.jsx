@@ -8,22 +8,41 @@ import OptimizePage from "./pages/OptimizePage";
 import ProfilePage  from "./pages/ProfilePage";
 
 export default function App() {
-  const [page, setPage]               = useState("landing");
+  const [page, setPage]               = useState(null);
   const [user, setUser]               = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [cartItems, setCartItems]     = useState([]);
   const [budget, setBudget]           = useState("");
-  const [priceSlider, setPriceSlider] = useState(30);
   const [brandSlider, setBrandSlider] = useState(50);
 
   useEffect(() => {
-    // TODO: swap for real Auth0 when backend is ready
-    // fetch("http://localhost:5000/api/me", { credentials: "include" })
-    //   .then(res => res.ok ? res.json() : null)
-    //   .then(data => { if (data?.user) { setUser(data.user); setPage("home"); } })
-    //   .catch(() => {})
-    //   .finally(() => setAuthLoading(false));
-    setAuthLoading(false);
+    const params = new URLSearchParams(window.location.search);
+    const auth = params.get("auth");
+
+    if (auth === "success") {
+      window.history.replaceState({}, "", "/");
+      fetch("/api/me", { credentials: "include" })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.user) { setUser(data.user); setPage("home"); }
+          else setPage("login");
+        })
+        .catch(() => setPage("login"))
+        .finally(() => setAuthLoading(false));
+    } else if (auth === "error") {
+      window.history.replaceState({}, "", "/");
+      setPage("login");
+      setAuthLoading(false);
+    } else {
+      fetch("/api/me", { credentials: "include" })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.user) { setUser(data.user); setPage("home"); }
+          else setPage("landing");
+        })
+        .catch(() => setPage("landing"))
+        .finally(() => setAuthLoading(false));
+    }
   }, []);
 
   if (authLoading) {
@@ -38,8 +57,8 @@ export default function App() {
   }
 
   const sharedProps = {
-    setPage, user, cartItems, setCartItems,
-    budget, setBudget, priceSlider, setPriceSlider, brandSlider, setBrandSlider,
+    setPage, user, setUser, cartItems, setCartItems,
+    budget, setBudget, brandSlider, setBrandSlider,
   };
 
   return (

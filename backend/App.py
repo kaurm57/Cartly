@@ -2,10 +2,11 @@ import os
 import math
 import asyncio
 import httpx
-from flask import Flask, redirect, request, jsonify
+from flask import Flask, redirect, request, jsonify, session, g, url_for
 from flask_cors import CORS
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from Auth import auth0
 
 load_dotenv()
 
@@ -45,11 +46,70 @@ _stores_cache = {}
 def _cache_key(lat, lng, radius):
     return (round(lat, 3), round(lng, 3), radius)
 
+# ── Auth0 helper: build store_options from current request ────────────────────
+def get_store_options():
+    return {"request": request, "session": session}
+
 
 # ── Root redirect ──────────────────────────────────────────────────────────────
 @app.route('/')
 async def index():
     return redirect("http://localhost:5173")
+
+
+# ── Auth0: Login ───────────────────────────────────────────────────────────────
+@app.route('/login')
+async def login():
+    store_options = get_store_options()
+    try:
+        authorization_url = await auth0.start_interactive_login({}, store_options)
+        return redirect(authorization_url)
+    except Exception as e:
+        return jsonify({"error": f"Login error: {str(e)}"}), 500
+
+
+# ── Auth0: Callback ────────────────────────────────────────────────────────────
+@app.route('/callback')
+async def callback():
+    store_options = get_store_options()
+    try:
+        await auth0.complete_interactive_login(str(request.url), store_options)
+        return redirect("http://localhost:5173/?auth=success")
+    except Exception as e:
+        return redirect(f"http://localhost:5173/?auth=error&msg={str(e)}")
+
+
+# ── Auth0: Logout ──────────────────────────────────────────────────────────────
+@app.route('/logout')
+async def logout():
+    store_options = get_store_options()
+    try:
+        logout_url = await auth0.logout(store_options)
+        return redirect(logout_url)
+    except Exception as e:
+        session.clear()
+        return redirect("http://localhost:5173")
+
+
+# ── Auth0: Current user ────────────────────────────────────────────────────────
+@app.route('/api/me')
+async def api_me():
+    store_options = get_store_options()
+    try:
+        user = await auth0.get_user(store_options)
+        if not user:
+            return jsonify({"user": None}), 401
+        return jsonify({
+            "user": {
+                "name": user.get("name"),
+                "email": user.get("email"),
+                "picture": user.get("picture"),
+                "sub": user.get("sub"),
+                "nickname": user.get("nickname"),
+            }
+        })
+    except Exception:
+        return jsonify({"user": None}), 401
 
 
 # ── Grocery stores ─────────────────────────────────────────────────────────────
@@ -62,13 +122,11 @@ async def get_grocery_stores():
     if lat is None or lng is None:
         return jsonify({"error": "lat and lng are required"}), 400
 
-    # ── Cache check ───────────────────────────────────────────────────────────
     key = _cache_key(lat, lng, radius)
     if key in _stores_cache:
         cached = _stores_cache[key]
         return jsonify({"stores": cached, "count": len(cached), "cached": True})
 
-    # ── Google Places — two parallel requests ─────────────────────────────────
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": GOOGLE_PLACES_KEY,
@@ -80,20 +138,14 @@ async def get_grocery_stores():
             "includedTypes": ["supermarket"],
             "maxResultCount": 20,
             "locationRestriction": {
-                "circle": {
-                    "center": {"latitude": lat, "longitude": lng},
-                    "radius": float(radius),
-                }
+                "circle": {"center": {"latitude": lat, "longitude": lng}, "radius": float(radius)}
             },
         },
         {
             "includedTypes": ["grocery_store"],
             "maxResultCount": 20,
             "locationRestriction": {
-                "circle": {
-                    "center": {"latitude": lat, "longitude": lng},
-                    "radius": float(radius),
-                }
+                "circle": {"center": {"latitude": lat, "longitude": lng}, "radius": float(radius)}
             },
         },
     ]
@@ -107,7 +159,6 @@ async def get_grocery_stores():
         except Exception as e:
             return jsonify({"error": f"Google Places error: {str(e)}"}), 502
 
-    # Merge and deduplicate by place ID
     seen_ids = set()
     all_places = []
     for resp in responses:
@@ -117,7 +168,6 @@ async def get_grocery_stores():
                 seen_ids.add(pid)
                 all_places.append(place)
 
-    # Collect and filter candidates
     candidates = []
     for place in all_places:
         if place.get("businessStatus") == "CLOSED_PERMANENTLY":
@@ -132,7 +182,6 @@ async def get_grocery_stores():
             continue
         candidates.append((place, name, elat, elng))
 
-    # Build store list
     stores = []
     for (place, name, elat, elng) in candidates:
         dlat = math.radians(elat - lat)
@@ -144,10 +193,8 @@ async def get_grocery_stores():
             * math.sin(dlng_r / 2) ** 2
         )
         dist_m = int(6371000 * 2 * math.asin(math.sqrt(a)))
-
         types = place.get("types", [])
         shop_type = "supermarket" if "supermarket" in types else "grocery"
-
         stores.append({
             "id": place.get("id"),
             "name": name,
@@ -159,10 +206,7 @@ async def get_grocery_stores():
         })
 
     stores.sort(key=lambda x: x["distance_m"])
-
-    # ── Store in cache ────────────────────────────────────────────────────────
     _stores_cache[key] = stores
-
     return jsonify({"stores": stores, "count": len(stores), "cached": False})
 
 
@@ -218,54 +262,6 @@ async def save_preferences():
     return jsonify({"ok": True, "data": result.data})
 
 
-# ── Auth routes (commented out until Auth0 is configured) ─────────────────────
-# from Auth import auth0
-#
-# @app.before_request
-# def store_request_response():
-#     g.store_options = {"request": request}
-#
-# @app.route('/login')
-# async def login():
-#     authorization_url = await auth0.start_interactive_login({}, g.store_options)
-#     return redirect(authorization_url)
-#
-# @app.route('/callback')
-# async def callback():
-#     try:
-#         await auth0.complete_interactive_login(str(request.url), g.store_options)
-#         return redirect("http://localhost:5173")
-#     except Exception as e:
-#         return f"Authentication error: {str(e)}", 400
-#
-# @app.route('/logout')
-# async def logout():
-#     logout_url = await auth0.logout(g.store_options)
-#     return redirect(logout_url)
-#
-# @app.route('/api/me')
-# async def api_me():
-#     user = await auth0.get_user(g.store_options)
-#     if not user:
-#         return jsonify({"user": None}), 401
-#     return jsonify({
-#         "user": {
-#             "name": user.get("name"),
-#             "email": user.get("email"),
-#             "picture": user.get("picture"),
-#             "sub": user.get("sub"),
-#             "nickname": user.get("nickname"),
-#         }
-#     })
-#
-# @app.route('/profile')
-# async def profile():
-#     user = await auth0.get_user(g.store_options)
-#     if not user:
-#         return redirect(url_for('login'))
-#     return render_template('profile.html', user=user)
-
-
 # ── Run ────────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='127.0.0.1', port=5000)
