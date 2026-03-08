@@ -26,7 +26,7 @@ function AnimatedTagline() {
   );
 }
 
-export default function LandingPage({ setPage }) {
+export default function LandingPage({ setPage, user }) {
   return (
     <div style={{
       minHeight: "100vh",
@@ -60,13 +60,24 @@ export default function LandingPage({ setPage }) {
           </div>
           <span style={{ fontSize: 22, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.bodyText, letterSpacing: "-0.3px" }}>Cartly</span>
         </div>
-        <button onClick={() => setPage("login")} style={{
-          background: `linear-gradient(135deg, ${theme.green}, ${theme.greenDark})`,
-          color: theme.white, border: "none", borderRadius: 10,
-          padding: "10px 24px", fontFamily: "'Nunito', sans-serif",
-          fontWeight: 700, fontSize: 14, cursor: "pointer",
-          boxShadow: `0 4px 14px rgba(177,221,140,0.45)`,
-        }}>Log In / Sign Up</button>
+        {user ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+            onClick={() => setPage("profile")}>
+            {user.picture
+              ? <img src={user.picture} alt="profile" style={{ width: 38, height: 38, borderRadius: 10, objectFit: "cover", border: `2px solid ${theme.green}` }} />
+              : <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg, ${theme.green}, ${theme.greenDark})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>👤</div>
+            }
+            <span style={{ fontSize: 13, fontWeight: 800, color: theme.charcoal }}>{user.nickname || user.name}</span>
+          </div>
+        ) : (
+          <button onClick={() => setPage("login")} style={{
+            background: `linear-gradient(135deg, ${theme.green}, ${theme.greenDark})`,
+            color: theme.white, border: "none", borderRadius: 10,
+            padding: "10px 24px", fontFamily: "'Nunito', sans-serif",
+            fontWeight: 700, fontSize: 14, cursor: "pointer",
+            boxShadow: `0 4px 14px rgba(177,221,140,0.45)`,
+          }}>Log In / Sign Up</button>
+        )}
       </nav>
 
       {/* Hero */}

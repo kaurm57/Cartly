@@ -33,7 +33,7 @@ GOOGLE_PLACES_KEY = os.getenv("GOOGLE_PLACES_KEY")
 
 # ── Known chains ───────────────────────────────────────────────────────────────
 KNOWN_CHAINS = {
-    "no frills", "walmart", "costco", "metro", "food basics", "loblaws"
+    "no frills", "walmart", "costco", "metro", "food basics", "loblaws", "farah foods"
 }
 
 def is_known_chain(name: str) -> bool:
@@ -236,10 +236,20 @@ async def reverse_geocode():
 @app.route("/api/user/preferences", methods=["GET"])
 async def load_preferences():
     user_id = request.args.get("user_id", "guest")
-    result = supabase.table("user_preferences").select("*").eq("user_id", user_id).execute()
-    if result.data:
-        return jsonify(result.data[0])
-    return jsonify({"selected_stores": [], "radius_meters": 2000})
+    try:
+        result = supabase.table("user_preferences").select("*").eq("user_id", user_id).execute()
+        if result.data:
+            return jsonify(result.data[0])
+    except Exception as e:
+        print(f"Supabase load error: {e}")
+    return jsonify({
+        "user_id": user_id,
+        "selected_stores": [],
+        "radius_meters": 2000,
+        "location_lat": None,
+        "location_lng": None,
+        "location_address": None,
+    })
 
 
 @app.route("/api/user/preferences", methods=["POST"])
@@ -258,9 +268,12 @@ async def save_preferences():
         "location_address": body.get("location_address"),
     }
 
-    result = supabase.table("user_preferences").upsert(data, on_conflict="user_id").execute()
-    return jsonify({"ok": True, "data": result.data})
-
+    try:
+        result = supabase.table("user_preferences").upsert(data, on_conflict="user_id").execute()
+        return jsonify({"ok": True, "data": result.data})
+    except Exception as e:
+        print(f"Supabase save error: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 # ── Run ────────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':

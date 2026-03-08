@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { theme, mockDeals, allCategories, categoryItems } from "../theme";
 import BottomNav from "../components/BottomNav";
 
+
 // ── Store color map ────────────────────────────────────────────────────────────
 const STORE_COLORS = {
   "no frills":   "#e8a800",
@@ -109,7 +110,7 @@ function PreferredStores({ setPage }) {
 }
 
 // ── Main HomePage ──────────────────────────────────────────────────────────────
-export default function HomePage({ setPage, cartItems = [], setCartItems }) {
+export default function HomePage({ setPage, user, cartItems = [], setCartItems }) {
   const [activeCategory, setActiveCategory] = useState(null);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [showCartSidebar, setShowCartSidebar] = useState(false);
@@ -196,7 +197,7 @@ export default function HomePage({ setPage, cartItems = [], setCartItems }) {
           <div style={{ width: 1, height: 32, background: theme.grayBorder, marginLeft: 4 }} />
           <div>
             <p style={{ margin: 0, fontSize: 12, color: theme.gray }}>Hello,</p>
-            <h2 style={{ margin: "-4px 0 0", fontSize: 16, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.charcoal }}>Jane 👋</h2>
+<h2 style={{ margin: "-4px 0 0", fontSize: 16, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.charcoal }}>{user?.nickname || user?.name || "there"} 👋</h2>
           </div>
         </div>
 

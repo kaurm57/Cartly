@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import { theme } from "../theme";
 import BottomNav from "../components/BottomNav";
+import userIcon from "../assets/user.png";
 
 // ── Mapbox token ───────────────────────────────────────────────────────────────
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -272,7 +273,10 @@ export default function ProfilePage({ setPage, user }) {
   const [selectedStores, setSelectedStores] = useState([]);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
+
+  // ── Load preferences on mount ──────────────────────────────────────────────
   // ── Load preferences on mount ──────────────────────────────────────────────
   useEffect(() => {
     const local = loadFromLocalStorage();
@@ -285,7 +289,8 @@ export default function ProfilePage({ setPage, user }) {
       }
       if (local.location_address) setAddress(local.location_address);
     }
-    fetch("/api/user/preferences?user_id=guest")
+    if (!user?.sub) return;
+    fetch(`/api/user/preferences?user_id=${encodeURIComponent(user.sub)}`)
       .then(r => r.json())
       .then(d => {
         if (d.selected_stores?.length) setSelectedStores(d.selected_stores);
@@ -297,7 +302,7 @@ export default function ProfilePage({ setPage, user }) {
         if (d.location_address) setAddress(d.location_address);
       })
       .catch(() => {});
-  }, []);
+  }, [user?.sub]);
 
   // ── Auto-save location + radius to localStorage ────────────────────────────
   useEffect(() => {
@@ -521,11 +526,36 @@ export default function ProfilePage({ setPage, user }) {
           <div style={{ width: 1, height: 32, background: theme.grayBorder, marginLeft: 4 }} />
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: theme.charcoal }}>Your Profile</h2>
         </div>
-        <button style={{
-          background: theme.cream, border: `1.5px solid ${theme.grayBorder}`,
-          borderRadius: 10, width: 40, height: 40, display: "flex",
-          alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 18,
-        }}>⚙️</button>
+        <div style={{ position: "relative" }}>
+          <button onClick={() => setShowUserMenu(p => !p)} style={{
+            background: theme.cream, border: `1.5px solid ${theme.grayBorder}`,
+            borderRadius: 10, width: 40, height: 40, display: "flex",
+            alignItems: "center", justifyContent: "center", cursor: "pointer",
+          }}>
+            {user?.picture
+              ? <img src={user.picture} style={{ width: 28, height: 28, borderRadius: 7, objectFit: "cover" }} />
+              : <span style={{ fontSize: 18 }}>👤</span>
+            }
+          </button>
+          {showUserMenu && (
+            <div style={{
+              position: "absolute", top: 48, right: 0, zIndex: 200,
+              background: theme.white, border: `1.5px solid ${theme.grayBorder}`,
+              borderRadius: 12, padding: "14px 16px", minWidth: 180,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+              display: "flex", flexDirection: "column", gap: 10,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: theme.charcoal }}>{user?.name || "Guest"}</div>
+              <div style={{ fontSize: 11, color: theme.gray }}>{user?.email}</div>
+              <div style={{ height: 1, background: theme.grayBorder }} />
+              <button onClick={() => { window.location.href = "/logout"; }} style={{
+                background: "#fff0f0", border: "1.5px solid #ffcccc",
+                borderRadius: 8, padding: "8px 0", fontFamily: "'Nunito', sans-serif",
+                fontWeight: 800, fontSize: 12, color: "#c0392b", cursor: "pointer",
+              }}>Log Out</button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div style={{ padding: "22px 28px", display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: 20 }}>
