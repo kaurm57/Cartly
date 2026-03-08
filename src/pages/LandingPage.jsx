@@ -56,7 +56,7 @@ export default function LandingPage({ setPage }) {
             display: "flex", alignItems: "center", justifyContent: "center",
             overflow: "hidden",
           }}>
-            <img src="https://res.cloudinary.com/dojayxyvx/image/upload/v1772864715/cart_background-removebg-preview_gsl33k.png" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src="https://res.cloudinary.com/dk5bcgmky/image/upload/v1772925782/Cartly_Logo_h7qgil.png" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
           <span style={{ fontSize: 22, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.bodyText, letterSpacing: "-0.3px" }}>Cartly</span>
         </div>

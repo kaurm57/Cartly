@@ -190,7 +190,7 @@ export default function HomePage({ setPage, cartItems = [], setCartItems }) {
       <div style={{ background: theme.white, borderBottom: `1.5px solid ${theme.grayBorder}`, padding: "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50, width: "100%", boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ width: 46, height: 46, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-            <img onClick={() => setPage("landing")} src="https://res.cloudinary.com/dojayxyvx/image/upload/v1772864715/cart_background-removebg-preview_gsl33k.png" style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }} />
+            <img onClick={() => setPage("landing")} src="https://res.cloudinary.com/dk5bcgmky/image/upload/v1772925782/Cartly_Logo_h7qgil.png" style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }} />
           </div>
           <span onClick={() => setPage("landing")} style={{ fontSize: 22, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.charcoal, letterSpacing: "-0.3px", cursor: "pointer" }}>Cartly</span>
           <div style={{ width: 1, height: 32, background: theme.grayBorder, marginLeft: 4 }} />

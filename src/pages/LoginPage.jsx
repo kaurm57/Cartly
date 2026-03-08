@@ -67,7 +67,7 @@ export default function LoginPage({ setPage, setUser }) {
         <button onClick={() => setPage("landing")} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 46, height: 46, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-              <img src="https://res.cloudinary.com/dojayxyvx/image/upload/v1772864715/cart_background-removebg-preview_gsl33k.png" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src="https://res.cloudinary.com/dk5bcgmky/image/upload/v1772925782/Cartly_Logo_h7qgil.png" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
             <span style={{ fontSize: 22, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.bodyText, letterSpacing: "-0.3px" }}>Cartly</span>
           </div>
@@ -78,8 +78,9 @@ export default function LoginPage({ setPage, setUser }) {
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 24px", position: "relative", zIndex: 10 }}>
         <div style={{ background: theme.white, borderRadius: 22, padding: "48px 44px", width: "100%", maxWidth: 440, border: `1.5px solid ${theme.grayBorder}`, boxShadow: "0 16px 60px rgba(30,42,18,0.08)", textAlign: "center" }}>
 
-          <div style={{ width: 58, height: 58, borderRadius: 16, margin: "0 auto 18px", background: `linear-gradient(135deg, ${theme.green}, ${theme.greenDark})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: `0 6px 20px rgba(177,221,140,0.5)` }}>🛒</div>
-          <h2 style={{ fontSize: 26, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.charcoal, margin: "0 0 8px" }}>Welcome to Cartly</h2>
+        <div style={{ width: 58, height: 58, borderRadius: 16, margin: "0 auto 18px", overflow: "hidden" }}>
+  <img src="https://res.cloudinary.com/dk5bcgmky/image/upload/v1772925782/Cartly_Logo_h7qgil.png" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+</div>          <h2 style={{ fontSize: 26, fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: theme.charcoal, margin: "0 0 8px" }}>Welcome to Cartly</h2>
           <p style={{ fontSize: 14, color: theme.gray, margin: "0 0 32px", lineHeight: 1.6 }}>
             Log in or sign up to start saving<br />on your grocery trips.
           </p>
