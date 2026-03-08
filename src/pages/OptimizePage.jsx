@@ -246,8 +246,11 @@ function getBestVariantForStore(itemName, store, targetTier) {
 
 // Multi-store: each item independently goes to whichever store+variant is globally cheapest for the tier.
 // This will naturally split items across stores when different stores win on different items.
-function buildOptimizedCart(cartItems, brandMode) {
-  const { tier: targetTier, storePool } = MODE_CFG[brandMode];
+function buildOptimizedCart(cartItems, brandMode, allowedStores) {
+  const { tier: targetTier, storePool: rawPool } = MODE_CFG[brandMode];
+  const storePool = allowedStores?.length
+    ? rawPool.filter(s => allowedStores.some(a => a.toLowerCase() === s.toLowerCase()))
+    : rawPool;
   const storeMap = {};
 
   cartItems.forEach(item => {
@@ -284,8 +287,11 @@ function buildOptimizedCart(cartItems, brandMode) {
 }
 
 // Single-store: find the ONE store with cheapest total for whole cart.
-function buildSingleStoreCart(cartItems, brandMode) {
-  const { tier: targetTier, storePool } = MODE_CFG[brandMode];
+function buildSingleStoreCart(cartItems, brandMode, allowedStores) {
+  const { tier: targetTier, storePool: rawPool } = MODE_CFG[brandMode];
+  const storePool = allowedStores?.length
+    ? rawPool.filter(s => allowedStores.some(a => a.toLowerCase() === s.toLowerCase()))
+    : rawPool;
 
   const results = storePool.map(store => {
     const items = cartItems.map(item => {
@@ -349,8 +355,19 @@ export default function OptimizePage({ setPage, cartItems = [], setCartItems, bu
   const [loadingSubs, setLoadingSubs] = useState(true);
   const [appliedSubs, setAppliedSubs] = useState([]);
 
-  const multiStores  = buildOptimizedCart(cartItems, brandMode);
-  const singleResult = buildSingleStoreCart(cartItems, brandMode);
+  const selectedStoreNames = (() => {
+    try {
+      const raw = localStorage.getItem("cartly_preferences");
+      if (raw) {
+        const prefs = JSON.parse(raw);
+        if (prefs.selected_stores?.length) return prefs.selected_stores.map(s => s.name);
+      }
+    } catch {}
+    return [];
+  })();
+
+  const multiStores  = buildOptimizedCart(cartItems, brandMode, selectedStoreNames);
+  const singleResult = buildSingleStoreCart(cartItems, brandMode, selectedStoreNames);
 
   const multiTotal  = parseFloat(multiStores.reduce((s, st) => s + st.subtotal, 0).toFixed(2));
   const singleTotal = singleResult?.total || 0;
