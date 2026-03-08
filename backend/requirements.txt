@@ -1,0 +1,7 @@
+flask
+flask-cors
+python-dotenv
+auth0-server-python
+httpx
+supabase
+python-dotenv
